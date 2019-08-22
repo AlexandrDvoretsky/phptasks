@@ -11,8 +11,6 @@ class CIBlockHandler
 {
     function OnAfterIBlockElementAddHandler(&$arFields)
     {
-        \Bitrix\Main\Loader::includeModule('iblock');
-
         if ($arFields["ID"] > 0) {
             CIBlockHandler::createAgent($arFields);
         }
@@ -25,31 +23,29 @@ class CIBlockHandler
     }
 
 
-    function OnBeforeIBlockElementDeleteHandler($ID)
+    function OnBeforeIBlockElementDeleteHandler($id)
     {
-        CAgent::RemoveAgent("CIBlockHandler::clearCacheAgent(" . ($ID) . ");");
+        $iblock = CIBlockElement::GetIBlockByID($id);
+        CAgent::RemoveAgent("CIBlockHandler::clearCacheAgent(" . ($id) . "," . ($iblock) . ");", "iblock");
     }
 
-    function clearCacheAgent($id)
+    function clearCacheAgent($id, $iblock_id)
     {
-        \Bitrix\Main\Loader::includeModule('iblock');
-        $iblock = CIBlockElement::GetIBlockByID($id);
-
-        $GLOBALS['CACHE_MANAGER']->ClearByTag("iblock_id_" . $iblock);
+        $GLOBALS['CACHE_MANAGER']->ClearByTag("iblock_id_" . $iblock_id);
     }
 
     function createAgent($arElement)
     {
-        $res = CAgent::GetList(Array("ID" => "DESC"), array("NAME" => "CIBlockHandler::clearCacheAgent(" . ($arElement['ID']) . ");"));
+        $res = CAgent::GetList(Array("ID" => "DESC"), array("NAME" => "CIBlockHandler::clearCacheAgent(" . ($arElement['ID']) . "," . ($arElement['IBLOCK_ID']) .");"));
         if (!$agent = $res->fetch()) {
             if(!empty( $arElement['ACTIVE_TO'])){
-                CAgent::AddAgent("CIBlockHandler::clearCacheAgent(" . ($arElement['ID']) . ");", "", "Y", '3600', "", "Y", $arElement['ACTIVE_TO'], $arElement['ID']);
+                CAgent::AddAgent("CIBlockHandler::clearCacheAgent(" . ($arElement['ID']) . "," . ($arElement['IBLOCK_ID']) . ");", "iblock", "Y", '3600', "", "Y", $arElement['ACTIVE_TO'], $arElement['ID']);
             }
         } else {
             if(!empty( $arElement['ACTIVE_TO'])) {
                 CAgent::Update($agent['ID'], array("NEXT_EXEC" => $arElement['ACTIVE_TO']));
             }else{
-                CAgent::RemoveAgent("CIBlockHandler::clearCacheAgent(" . ($arElement['ID']) . ");");
+                CAgent::RemoveAgent("CIBlockHandler::clearCacheAgent(" . ($arElement['ID']) . "," . ($arElement['IBLOCK_ID']) . ");", "iblock");
             }
         }
     }
