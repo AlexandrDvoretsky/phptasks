@@ -1,8 +1,6 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
-define('NEWS_IBLOCK_ID', 1);
-
 AddEventHandler('iblock', 'OnAfterIBlockElementAdd', array('CIBlockHandler', 'OnAfterIBlockElementAddHandler'));
 AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', array('CIBlockHandler', 'OnAfterIBlockElementUpdateHandler'));
 AddEventHandler('iblock', 'OnBeforeIBlockElementDelete', array('CIBlockHandler', 'OnBeforeIBlockElementDeleteHandler'));
@@ -14,14 +12,12 @@ class CIBlockHandler
         if ($arFields["ID"] > 0) {
             CIBlockHandler::createAgent($arFields);
         }
-
     }
 
     function OnAfterIBlockElementUpdateHandler(&$arFields)
     {
         CIBlockHandler::OnAfterIBlockElementAddHandler($arFields);
     }
-
 
     function OnBeforeIBlockElementDeleteHandler($id)
     {
@@ -50,5 +46,4 @@ class CIBlockHandler
         }
     }
 }
-
 ?>
