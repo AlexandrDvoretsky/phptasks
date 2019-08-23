@@ -4,37 +4,29 @@ $APPLICATION->SetTitle("iblockproperty");
 ?>
 
 <?
-\Bitrix\Main\Loader::includeModule('iblock');
+CModule::IncludeModule("iblock");
 
-$iblockId = '1';
+$iblockId = array(1);
 $propertyCode = 'AUTHOR';
 $arElementsId = array();
-
+$arOrder = array("SORT"=>"ASC");
+$arFilter = array('IBLOCK_ID' => $iblockId, 'PROPERTY_'.$propertyCode=>false);
+$arGroupBy  = false;
+$arNavStartParams = false;
 $arSelect = array('ID', 'IBLOCK_ID', 'NAME');
-$arFilter = array('IBLOCK_ID' => $iblockId);
 
-$dbItems = \Bitrix\Iblock\ElementTable::getList(array(
-    'select' => $arSelect,
-    'filter' => $arFilter,
-));
-
-while ($arItem = $dbItems->fetch()) {
-    $dbProperty = \CIBlockElement::getProperty(
-        $arItem['IBLOCK_ID'],
-        $arItem['ID']
-    );
-    while ($arProperty = $dbProperty->Fetch()) {
-        $arItem['PROPERTIES'][$arProperty['ID']] = $arProperty;
-        if (empty($arItem['PROPERTIES'][$arProperty['ID']]['VALUE'])) {
-            $arElementsId[] = $arItem['ID'];
-            CIBlockElement::SetPropertyValuesEx($arItem['ID'], $arItem['IBLOCK_ID'], array($propertyCode => $arItem['NAME']));
-        }
-    }
+$res = CIBlockElement::GetList($arOrder, $arFilter, $arGroupBy, $arNavStartParams, $arSelect);
+while($ob = $res->GetNextElement())
+{
+    $arFields = $ob->GetFields();
+    $arElementsId[] = $arFields['ID'];
+    CIBlockElement::SetPropertyValuesEx($arFields['ID'], $arFields['IBLOCK_ID'], array($propertyCode => $arFields['NAME']));
 }
+
 if(empty($arElementsId)){
     echo "У всех элементов установлено свойство с кодом PROPERTY_".$propertyCode;
 }else{
-    echo "ID элементов которые были обновлены: \n ";
+    echo "ID элементов которые были обновлены: ";
     foreach ($arElementsId as $key=>$val){
 
         if(end($arElementsId)==$val)
