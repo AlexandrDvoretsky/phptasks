@@ -16,11 +16,10 @@ $arNavStartParams = false;
 $arSelect = array('ID', 'IBLOCK_ID', 'NAME');
 
 $res = CIBlockElement::GetList($arOrder, $arFilter, $arGroupBy, $arNavStartParams, $arSelect);
-while($ob = $res->GetNextElement())
+while($ob = $res->Fetch())
 {
-    $arFields = $ob->GetFields();
-    $arElementsId[] = $arFields['ID'];
-    CIBlockElement::SetPropertyValuesEx($arFields['ID'], $arFields['IBLOCK_ID'], array($propertyCode => $arFields['NAME']));
+    $arElementsId[] = $ob['ID'];
+    CIBlockElement::SetPropertyValuesEx($ob['ID'], $ob['IBLOCK_ID'], array($propertyCode => $ob['NAME']));
 }
 
 if(empty($arElementsId)){
