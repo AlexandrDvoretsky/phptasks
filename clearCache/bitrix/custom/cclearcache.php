@@ -15,7 +15,9 @@ class CClearCache
                 }
             } else {
                 if (!empty($arElement['ACTIVE_TO'])) {
-                    CAgent::Update($agent['ID'], array("NEXT_EXEC" => $arElement['ACTIVE_TO']));
+                    if($agent['NEXT_EXEC']!=$arElement['ACTIVE_TO']){
+                        CAgent::Update($agent['ID'], array("NEXT_EXEC" => $arElement['ACTIVE_TO']));
+                    }
                 } else {
                     CClearCache::removeAgent($arElement['ID'], $arElement['IBLOCK_ID']);
                 }
@@ -35,6 +37,11 @@ class CClearCache
         function getAgentTitle($id, $iblock_id)
         {
             return "CClearCache::clearCacheAgent(" . $id . "," . $iblock_id . ");";
+        }
+
+        function removeAgentFromAgentList($id){
+            $iblock = CIBlockElement::GetIBlockByID($id);
+            CClearCache::removeAgent($id, $iblock);
         }
     }
 ?>

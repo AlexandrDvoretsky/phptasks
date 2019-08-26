@@ -1,9 +1,9 @@
 <?
 if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die();
 
-AddEventHandler('iblock', 'OnAfterIBlockElementAdd', 'OnAfterIBlockElementAddHandler');
-AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', 'OnAfterIBlockElementAddHandler');
-AddEventHandler('iblock', 'OnBeforeIBlockElementDelete', 'OnBeforeIBlockElementDeleteHandler');
+AddEventHandler('iblock', 'OnAfterIBlockElementAdd', array('CClearCache', 'checkAgent'));
+AddEventHandler('iblock', 'OnAfterIBlockElementUpdate', array('CClearCache', 'checkAgent'));
+AddEventHandler('iblock', 'OnBeforeIBlockElementDelete', array('CClearCache', 'removeAgentFromAgentList'));
 
 CModule::AddAutoloadClasses(
     '',
@@ -12,14 +12,4 @@ CModule::AddAutoloadClasses(
     )
 );
 
-function OnAfterIBlockElementAddHandler($arFields)
-{
-    CClearCache::checkAgent($arFields);
-}
-
-function OnBeforeIBlockElementDeleteHandler($id)
-{
-    $iblock = CIBlockElement::GetIBlockByID($id);
-    CClearCache::removeAgent($id, $iblock);
-}
 ?>
