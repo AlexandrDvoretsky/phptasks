@@ -1,50 +1,61 @@
 <?
+
 class CClearCache
+{
+    public $arIblockId = array(1);
+
+    function __construct()
     {
-        static $arIblockId = array(1);
+    }
 
-        function clearCacheAgent($id, $iblock_id)
-        {
-            if(in_array($iblock_id, self::$arIblockId))
-                $GLOBALS['CACHE_MANAGER']->ClearByTag("iblock_id_" . $iblock_id);
-        }
+    function clearCacheAgent($id, $iblock_id)
+    {
+        $obj = new CClearCache();
+        if (in_array($iblock_id, $obj->arIblockId))
+            $GLOBALS['CACHE_MANAGER']->ClearByTag("iblock_id_" . $iblock_id);
+    }
 
-        function checkAgent($arElement)
-        {
-            $res = CAgent::GetList(Array("ID" => "DESC"), array("NAME" => CClearCache::getAgentTitle($arElement['ID'], $arElement['IBLOCK_ID'])));
-            if (!$agent = $res->fetch()) {
-                if (!empty($arElement['ACTIVE_TO'])) {
-                    CClearCache::createAgent($arElement['ID'], $arElement['IBLOCK_ID'], $arElement['ACTIVE_TO'], $arElement['ID']);
+    function checkAgent($arElement)
+    {
+        $obj = new CClearCache();
+        $res = CAgent::GetList(Array("ID" => "DESC"), array("NAME" => $obj->getAgentTitle($arElement['ID'], $arElement['IBLOCK_ID'])));
+        if (!$agent = $res->fetch()) {
+            if (!empty($arElement['ACTIVE_TO'] && in_array($arElement['IBLOCK_ID'], $obj->arIblockId))) {
+                $obj->createAgent($arElement['ID'], $arElement['IBLOCK_ID'], $arElement['ACTIVE_TO'], $arElement['ID']);
+            }
+        } else {
+            if (!empty($arElement['ACTIVE_TO'])) {
+                if ($agent['NEXT_EXEC'] != $arElement['ACTIVE_TO']) {
+                    CAgent::Update($agent['ID'], array("NEXT_EXEC" => $arElement['ACTIVE_TO']));
                 }
             } else {
-                if (!empty($arElement['ACTIVE_TO'])) {
-                    if($agent['NEXT_EXEC']!=$arElement['ACTIVE_TO']){
-                        CAgent::Update($agent['ID'], array("NEXT_EXEC" => $arElement['ACTIVE_TO']));
-                    }
-                } else {
-                    CClearCache::removeAgent($arElement['ID'], $arElement['IBLOCK_ID']);
-                }
+                $obj->removeAgent($arElement['ID'], $arElement['IBLOCK_ID']);
             }
         }
-
-        function createAgent($id, $iblock_id, $next_exec, $sort)
-        {
-            CAgent::AddAgent(CClearCache::getAgentTitle($id, $iblock_id), "", "Y", '3600', "", "Y", $next_exec, $sort);
-        }
-
-        function removeAgent($id, $iblock_id)
-        {
-            CAgent::RemoveAgent(CClearCache::getAgentTitle($id, $iblock_id), "");
-        }
-
-        function getAgentTitle($id, $iblock_id)
-        {
-            return "CClearCache::clearCacheAgent(" . $id . "," . $iblock_id . ");";
-        }
-
-        function removeAgentFromAgentList($id){
-            $iblock = CIBlockElement::GetIBlockByID($id);
-            CClearCache::removeAgent($id, $iblock);
-        }
     }
+
+    function createAgent($id, $iblock_id, $next_exec, $sort)
+    {
+        CAgent::AddAgent($this->getAgentTitle($id, $iblock_id), "", "Y", '3600', "", "Y", $next_exec, $sort);
+    }
+
+    function removeAgent($id, $iblock_id)
+    {
+        CAgent::RemoveAgent($this->getAgentTitle($id, $iblock_id), "");
+    }
+
+    public function getAgentTitle($id, $iblock_id)
+    {
+        return "CClearCache::clearCacheAgent(" . $id . "," . $iblock_id . ");";
+    }
+
+    function removeAgentFromAgentList($id)
+    {
+        $obj = new CClearCache();
+        $iblock = CIBlockElement::GetIBlockByID($id);
+        $obj->removeAgent($id, $iblock);
+    }
+}
+
 ?>
+
