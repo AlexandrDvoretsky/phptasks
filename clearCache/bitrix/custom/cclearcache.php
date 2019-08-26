@@ -4,10 +4,6 @@ class CClearCache
 {
     public $arIblockId = array(1);
 
-    function __construct()
-    {
-    }
-
     function clearCacheAgent($id, $iblock_id)
     {
         $obj = new CClearCache();
