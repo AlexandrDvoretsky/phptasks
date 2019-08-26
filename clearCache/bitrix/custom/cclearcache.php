@@ -1,9 +1,12 @@
 <?
 class CClearCache
     {
+        static $arIblockId = array(1);
+
         function clearCacheAgent($id, $iblock_id)
         {
-            $GLOBALS['CACHE_MANAGER']->ClearByTag("iblock_id_" . $iblock_id);
+            if(in_array($iblock_id, self::$arIblockId))
+                $GLOBALS['CACHE_MANAGER']->ClearByTag("iblock_id_" . $iblock_id);
         }
 
         function checkAgent($arElement)
