@@ -3,6 +3,11 @@ if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) {
     die();
 }
 
+$this->SetViewTarget('elementCount');
+    $arResult['ELEMENT_COUNT'];
+$this->EndViewTarget();
+
+//echo "<pre>"; print_r($arResult); echo "</pre>";die();
 foreach ($arResult['NEWS'] as $key => $value) {
     ?>
     <ul>

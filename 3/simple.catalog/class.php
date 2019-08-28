@@ -1,4 +1,5 @@
 <?
+
 use \Bitrix\Iblock\Component\ElementList;
 use \Bitrix\Main;
 use \Bitrix\Main\Localization\Loc;
@@ -7,13 +8,13 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) die();
 
 Loc::loadMessages(__FILE__);
 
-if (!\Bitrix\Main\Loader::includeModule('iblock'))
-{
-	ShowError(Loc::getMessage('IBLOCK_MODULE_NOT_INSTALLED'));
-	return;
+if (!\Bitrix\Main\Loader::includeModule('iblock')) {
+    ShowError(Loc::getMessage('IBLOCK_MODULE_NOT_INSTALLED'));
+    return;
 }
 
-class SimpleCatalogComponent extends CBitrixComponent{
+class SimpleCatalogComponent extends CBitrixComponent
+{
     protected $errors;
 
     protected function initParams()
@@ -26,7 +27,8 @@ class SimpleCatalogComponent extends CBitrixComponent{
         $this->arParams['USER_PROPERTY_CODE'] = isset($this->arParams['USER_PROPERTY_CODE']) ? $this->arParams['USER_PROPERTY_CODE'] : '';
     }
 
-    protected function getIblockSection(){
+    protected function getIblockSection()
+    {
         $sectionList = array();
         $arSectionId = array();
         $arNewsId = array();
@@ -40,10 +42,10 @@ class SimpleCatalogComponent extends CBitrixComponent{
         );
 
         while ($section = $sectionList->Fetch()) {
-            $arSectionId[]=$section['ID'];
-            foreach ($section[$this->arParams['USER_PROPERTY_CODE']] as $key=>$val){
-                $this->arResult['NEWS'][$val]['SECTIONS'][$section['ID']]['NAME']=$section['NAME'];
-                $arNewsId[$val]=$val;
+            $arSectionId[] = $section['ID'];
+            foreach ($section[$this->arParams['USER_PROPERTY_CODE']] as $key => $val) {
+                $this->arResult['NEWS'][$val]['SECTIONS'][$section['ID']]['NAME'] = $section['NAME'];
+                $arNewsId[$val] = $val;
             }
         }
 
@@ -51,25 +53,29 @@ class SimpleCatalogComponent extends CBitrixComponent{
         $this->arSectionId = $arSectionId;
     }
 
-    protected function getNews(){
+    protected function getNews($arNewsId)
+    {
         $arNews = CIBlockElement::GetList(
-            array("SORT"=>"ASC"),
-            array('IBLOCK_ID'=>$this->arParams['IBLOCK_ID_NEWS'], 'ID'=>$this->arNewsId, 'ACTIVE'=>'Y'),
+            array("SORT" => "ASC"),
+            array('IBLOCK_ID' => $this->arParams['IBLOCK_ID_NEWS'], 'ID' => $arNewsId, 'ACTIVE' => 'Y'),
             false,
             false,
             array('ID', 'IBLOCK_ID', 'NAME', 'ACTIVE_FROM')
         );
 
         while ($news = $arNews->Fetch()) {
-            $this->arResult['NEWS'][$news['ID']]['NAME'] =$news['NAME'];
-            $this->arResult['NEWS'][$news['ID']]['ACTIVE_FROM'] =$news['ACTIVE_FROM'];
+            $this->arResult['NEWS'][$news['ID']]['NAME'] = $news['NAME'];
+            $this->arResult['NEWS'][$news['ID']]['ACTIVE_FROM'] = $news['ACTIVE_FROM'];
         }
     }
 
-    protected function getProducts(){
-        $arCatalogElements =  CIBlockElement::GetList(
-            array("SORT"=>"ASC"),
-            array('IBLOCK_ID'=> $this->arParams['IBLOCK_ID_CATALOG'], 'IBLOCK_SECTION_ID'=>$this->arSectionId, 'ACTIVE'=>'Y'),
+    protected function getProducts($arSectionId)
+    {
+        $this->cnt = 0;
+
+        $arCatalogElements = CIBlockElement::GetList(
+            array("SORT" => "ASC"),
+            array('IBLOCK_ID' => $this->arParams['IBLOCK_ID_CATALOG'], 'IBLOCK_SECTION_ID' => $arSectionId, 'ACTIVE' => 'Y'),
             false,
             false,
             array('ID', 'IBLOCK_ID', 'IBLOCK_SECTION_ID', 'NAME', 'PROPERTY_MATERIAL', 'PROPERTY_ARTNUMBER', 'PROPERTY_PRICE')
@@ -79,19 +85,26 @@ class SimpleCatalogComponent extends CBitrixComponent{
             $this->cnt++;
             $this->arResult['ELEMENTS'][$catalogElement['IBLOCK_SECTION_ID']][] = $catalogElement;
         }
+        $this->arResult['ELEMENT_COUNT'] = $this->cnt;
     }
 
     protected function prepareResult()
     {
+        global $USER;
+        $cacheId = $USER->GetUserGroupString();
         $this->initParams();
-        $this->cnt = 0;
 
-        $this->getIblockSection();
-        $this->getNews();
-        $this->getProducts();
+        if ($this->StartResultCache(false, $cacheId)) {
 
-        if($this->StartResultCache())
-            $this->setResultCacheKeys($this->arResult);
+            $this->getIblockSection();
+            $this->getNews($this->arNewsId);
+            $this->getProducts($this->arSectionId);
+
+            if (empty($this->arResult))
+                $this->AbortResultCache();
+            else
+                $this->setResultCacheKeys($this->arResult);
+        }
 
         return $this->arResult;
     }
@@ -105,14 +118,16 @@ class SimpleCatalogComponent extends CBitrixComponent{
 
     public function executeComponent()
     {
+        global $APPLICATION;
+        $APPLICATION->SetTitle(
+            Loc::getMessage('PAGE_TITILE').$APPLICATION->ShowViewContent('elementCount')
+        );
         $this->errors = new \Bitrix\Main\ErrorCollection();
 
         if (!$this->prepareResult()) {
             $this->printErrors();
             return;
         }
-        global $APPLICATION;
-        $APPLICATION->SetPageProperty('title', "В каталоге товаров представлено товаров: ".$this->cnt);
         $this->includeComponentTemplate();
     }
 }
