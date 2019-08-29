@@ -25,6 +25,12 @@ class SimpleCatalogComponent extends CBitrixComponent
         $this->arParams['USER_PROPERTY_CODE'] = isset($this->arParams['USER_PROPERTY_CODE']) ? $this->arParams['USER_PROPERTY_CODE'] : '';
     }
 
+    protected function initArs()
+    {
+        $this->arNewsId = array();
+        $this->arSectionId = array();
+    }
+
     protected function getIblockSection()
     {
         $sectionList = array();
@@ -51,67 +57,63 @@ class SimpleCatalogComponent extends CBitrixComponent
         $this->arSectionId = $arSectionId;
     }
 
-    protected function getNews($arNewsId)
+    protected function getNews()
     {
-        $arNews = CIBlockElement::GetList(
+        $newsList = CIBlockElement::GetList(
             array("SORT" => "ASC"),
-            array('IBLOCK_ID' => $this->arParams['IBLOCK_ID_NEWS'], 'ID' => $arNewsId, 'ACTIVE' => 'Y'),
+            array('IBLOCK_ID' => $this->arParams['IBLOCK_ID_NEWS'], 'ID' => $this->arNewsId, 'ACTIVE' => 'Y'),
             false,
             false,
             array('ID', 'IBLOCK_ID', 'NAME', 'ACTIVE_FROM')
         );
 
-        while ($news = $arNews->Fetch()) {
+        while ($news = $newsList->Fetch()) {
             $this->arResult['NEWS'][$news['ID']]['NAME'] = $news['NAME'];
             $this->arResult['NEWS'][$news['ID']]['ACTIVE_FROM'] = $news['ACTIVE_FROM'];
         }
     }
 
-    protected function getProducts($arSectionId)
+    protected function getProducts()
     {
-        $this->cnt = 0;
-
-        $arCatalogElements = CIBlockElement::GetList(
+        $cnt = 0;
+        $catalogElements = CIBlockElement::GetList(
             array("SORT" => "ASC"),
-            array('IBLOCK_ID' => $this->arParams['IBLOCK_ID_CATALOG'], 'IBLOCK_SECTION_ID' => $arSectionId, 'ACTIVE' => 'Y'),
+            array('IBLOCK_ID' => $this->arParams['IBLOCK_ID_CATALOG'], 'IBLOCK_SECTION_ID' => $this->arSectionId, 'ACTIVE' => 'Y'),
             false,
             false,
             array('ID', 'IBLOCK_ID', 'IBLOCK_SECTION_ID', 'NAME', 'PROPERTY_MATERIAL', 'PROPERTY_ARTNUMBER', 'PROPERTY_PRICE')
         );
 
-        while ($catalogElement = $arCatalogElements->Fetch()) {
-            $this->cnt++;
+        while ($catalogElement = $catalogElements->Fetch()) {
+            $cnt++;
             $this->arResult['ELEMENTS'][$catalogElement['IBLOCK_SECTION_ID']][] = $catalogElement;
         }
-        $this->arResult['ELEMENT_COUNT'] = $this->cnt;
+        $this->arResult['ELEMENT_COUNT'] = $cnt;
     }
 
     protected function prepareResult()
     {
-        global $USER;
-        $cacheId = $USER->GetUserGroupString();
         $this->initParams();
+        $this->initArs();
 
-        if ($this->StartResultCache(false, $cacheId)) {
-
-            $this->getIblockSection();
-            $this->getNews($this->arNewsId);
-            $this->getProducts($this->arSectionId);
-
-            if (empty($this->arResult)) {
-                $this->AbortResultCache();
-                return;
-            }
-            $this->EndResultCache();
-        }
+        $this->getIblockSection();
+        $this->getNews();
+        $this->getProducts();
     }
 
     public function executeComponent()
     {
-        global $APPLICATION;
+        global $USER;
+        $cacheId = $USER->GetUserGroupString();
 
-        $this->prepareResult();
-        $APPLICATION->SetTitle(Loc::getMessage('PAGE_TITILE') . $this->arResult['ELEMENT_COUNT']);
-        $this->includeComponentTemplate();
+        if($this->StartResultCache(false, $cacheId)) {
+
+            $this->prepareResult();
+            if (empty($this->arResult)) {
+                $this->AbortResultCache();
+                return;
+            }
+            $this->includeComponentTemplate();
+        }
     }
 }
