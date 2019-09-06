@@ -83,7 +83,7 @@ class combinatoric
             return $this->sampling($new_combinations, $length - 1);
         }else{
             $combination = array();
-            for($i=0; $i < $this->getUniqueWordCnt();$i++){
+            for($i=0; $i < count($this->chars);$i++){
                 for($j=0; $j < $this->length; $j++){
                     $combination[] = $this->chars[$i] . $this->chars[$j];
                 }
