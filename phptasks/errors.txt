@@ -1,0 +1,7 @@
+﻿2019-09-06 15:02:10 (MSK)
+combinatoricErrorException: Длина слова больше числа символов в строке! in D:\OSPanel\OSPanel\domains\dvumMas\komb.php:42
+Stack trace:
+#0 D:\OSPanel\OSPanel\domains\dvumMas\komb.php(33): combinatoric->check('321', 4)
+#1 D:\OSPanel\OSPanel\domains\dvumMas\komb.php(99): combinatoric->__construct('321', 4)
+#2 {main}
+
