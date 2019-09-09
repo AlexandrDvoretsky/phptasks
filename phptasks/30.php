@@ -50,21 +50,18 @@ for($i=0; $i<$rowCnt; $i++){
 
 //echo "<pre>"; print_r($newArray); echo "</pre>";
 
-for ($i = 0; $i < $rowCnt; $i++) {
-
-    for($k=1;$k<$rowCnt;$k++)
+for($k=1;$k<$rowCnt;$k++)
+{
+    for($r=0;$r<$rowCnt-1;$r++)
     {
-        for($r=0;$r<$rowCnt-1;$r++)
-        {
-            if($newArray[$r]['SORT'] > $newArray[$r+1]['SORT']){
-                $hold=$newArray[$r];
-                $newArray[$r] = $newArray[$r+1];
-                $newArray[$r+1]=$hold;
-            }
+        if($newArray[$r]['SORT'] > $newArray[$r+1]['SORT']){
+            $hold=$newArray[$r];
+            $newArray[$r] = $newArray[$r+1];
+            $newArray[$r+1]=$hold;
         }
     }
-
 }
+
 echo "<br> Результат: <br>";
 for($i=0; $i<$rowCnt; $i++){
     for($j=0; $j<$columnCnt; $j++){
