@@ -24,11 +24,13 @@ function checkElement($element, $array)
 
 function orderByASC($array)
 {
-    for ($r = 0; $r < countElem($array)-1; $r++) {
-        if($array[$r]>$array[$r+1]){
-            $hold = $array[$r];
-            $array[$r] = $array[$r + 1];
-            $array[$r + 1] = $hold;
+    for ($j = 1; $j < countElem($array); $j++) {
+        for ($r = 0; $r < countElem($array) - 1; $r++) {
+            if ($array[$r] > $array[$r + 1]) {
+                $hold = $array[$r];
+                $array[$r] = $array[$r + 1];
+                $array[$r + 1] = $hold;
+            }
         }
     }
     return $array;
