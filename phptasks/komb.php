@@ -1,21 +1,23 @@
 <?php
+
 //error_reporting(0);
 class combinatoricErrorException extends Exception
 {
     public function logError($e)
     {
         $date = date('Y-m-d H:i:s (T)');
-        $file = __DIR__.'\errors.txt';
-        $strError = $date."\n".$e."\r\n";
-        if(file_exists($file))
-            file_put_contents($file, $strError,FILE_APPEND);
+        $file = __DIR__ . '\errors.txt';
+        $strError = $date . "\n" . $e . "\r\n";
+        if (file_exists($file))
+            file_put_contents($file, $strError, FILE_APPEND);
     }
 
-    public function getErrorList(){
+    public function getErrorList()
+    {
         echo "\n Error.txt:";
-        $file = __DIR__.'\errors.txt';
-        if(file_exists($file))
-            return "<pre>".file_get_contents($file)."</pre>";
+        $file = __DIR__ . '\errors.txt';
+        if (file_exists($file))
+            return "<pre>" . file_get_contents($file) . "</pre>";
     }
 }
 
@@ -24,32 +26,27 @@ class combinatoric
     public $chars = array();
     public $length = '';
 
-    function __construct($chars, $length){
-        if($this->checkLength($chars, $length)){
+    function __construct($chars, $length)
+    {
+        if ($this->checkLength($chars, $length)) {
             $this->chars = str_split($chars);
             $this->length = $length;
         }
     }
 
-    public function checkLength($str, $len){
-
-        if(count(str_split($str)) < $len){
+    public function checkLength($str, $len)
+    {
+        if (count(str_split($str)) < $len) {
             throw  new combinatoricErrorException('Длина слова больше числа символов в строке!');
-        }else {
+        } else {
             return true;
         }
     }
 
-    public function checkArrayUnique($array){
-        $newArray = array_unique($array);
-        if(count($newArray) == 1) return false;
-        else return true;
-    }
-
-    public function checkUniqueChars($chars, $length)
+    public function checkUniqueChars($chars, $key)
     {
         $arChars = str_split($chars);
-        if (in_array($length, $arChars)) return false;
+        if (in_array($key, $arChars)) return false;
         else return true;
     }
 
@@ -67,42 +64,31 @@ class combinatoric
 
     public function sampling($combinations = array(), $length = false)
     {
-        if($this->checkArrayUnique($this->chars)){
-            $new_combinations = array();
+        $new_combinations = array();
 
-            if (!$combinations) $combinations = $this->chars;
-            if (!$length) $length = $this->length;
-            if ($length == 1) return $combinations;
+        if (!$combinations) $combinations = $this->chars;
+        if (!$length) $length = $this->length;
+        if ($length == 1) return $combinations;
 
-            foreach ($combinations as $combination) {
-                foreach ($this->chars as $char) {
-                    if ($this->checkUniqueChars($combination, $char))
-                        $new_combinations[] = $combination . $char;
-                }
+        foreach ($combinations as $key_comb => $val_comb) {
+            foreach ($this->chars as $key_char => $val_char) {
+                if ($this->checkUniqueChars($key_comb, $key_char))
+                    $new_combinations[$key_comb . $key_char] = $val_comb . $val_char;
             }
-            return $this->sampling($new_combinations, $length - 1);
-        }else{
-            $combination = array();
-            for($i=0; $i < count($this->chars);$i++){
-                for($j=0; $j < $this->length; $j++){
-                    $combination[] = $this->chars[$i] . $this->chars[$j];
-                }
-            }
-            return $combination;
         }
-
+        return $this->sampling($new_combinations, $length - 1);
     }
 }
 
-try{
-    $chars = new combinatoric('123',2);
+try {
+    $chars = new combinatoric('222', 3);
     $output = $chars->sampling();
     echo $chars->getUniqueWordCnt();
 
     echo "<pre>";
     var_dump($output);
     echo "</pre>";
-}catch (combinatoricErrorException $e){
+} catch (combinatoricErrorException $e) {
     echo $e;
     $e->logError($e);
     echo $e->getErrorList();
